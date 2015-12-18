@@ -1,3 +1,3 @@
 [submodule "submodules/bm"]
 	path = submodules/bm
-	url = https://github.com/p4lang/behavioral-model.git
+	url = https://github.com/pierce-m/behavioral-model.git

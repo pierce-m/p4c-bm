@@ -6,7 +6,7 @@
 
 #include <thrift/processor/TMultiplexedProcessor.h>
 
-using namespace ::apache::thrift;
+using namespace ::p4::thrift;
 
 using boost::shared_ptr;
 
