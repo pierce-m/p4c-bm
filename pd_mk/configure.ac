@@ -51,7 +51,8 @@ utility vector], [], [AC_MSG_ERROR([Missing header file])])
 AC_ARG_WITH([thrift],
     [AS_HELP_STRING([--with-thrift], [Thrift selector])],
     [THRIFT=$withval],
-    [AC_PATH_PROG([THRIFT], [thrift], [])])
+    [AC_PATH_PROG([THRIFT], [thrift], [])
+     AC_CHECK_HEADER([thrift/Thrift.h], [], [AC_MSG_ERROR([Thrift headers not found. Install Thrift from http://thrift.apache.org/docs/install/])])])
 AS_IF([test x"$THRIFT" = x],
 [AC_MSG_ERROR([cannot find thrift])])
 
@@ -62,7 +63,6 @@ AC_CHECK_LIB([pthread], pthread_create, [], [AC_MSG_ERROR([required library pthr
 
 # C++ libraries are harder (http://nerdland.net/2009/07/detecting-c-libraries-with-autotools/),
 # so use headers to check
-AC_CHECK_HEADER([thrift/Thrift.h], [], [AC_MSG_ERROR([Thrift headers not found. Install Thrift from http://thrift.apache.org/docs/install/])])
 
 # Checks for typedefs, structures, and compiler characteristics.
 # introduces in autoconf 2.69
