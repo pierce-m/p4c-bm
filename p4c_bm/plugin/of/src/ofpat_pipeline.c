@@ -3,8 +3,11 @@
  */
 
 #include "ofpat_state.h"
-#include "p4_sim/ofpat_pipeline.h"
-#include "p4ofagent/p4ofagent.h"
+
+#include <plugin/of/inc/ofpat_pipeline.h>
+
+#include <p4ofagent/p4ofagent.h>
+
 
 static int rc;
 static PWord_t pv;

@@ -4,14 +4,16 @@
 //::
 //:: map_mod = __import__(openflow_mapping_mod)
 //::
-#include "p4_sim/pd_wrappers.h"
-#include "p4_sim/pd.h"
-#include "p4_sim/pre.h"
-#include "p4_sim/ofpat_pipeline.h"
-#include "p4ofagent/p4ofagent.h"
-#include "p4ofagent/callbacks.h"
-#include "p4ofagent/openflow-spec1.3.0.h"
-#include "indigo/of_state_manager.h"
+#include <plugin/of/inc/pd_wrappers.h>
+#include <plugin/of/inc/ofpat_pipeline.h>
+
+#include <pd/pd.h>
+#include <pd/pd_pre.h>
+
+#include <p4ofagent/p4ofagent.h>
+#include <p4ofagent/callbacks.h>
+#include <p4ofagent/openflow-spec1.3.0.h>
+#include <indigo/of_state_manager.h>
 
 uint16_t
 bit_mask_to_prefix (uint8_t *pv, int width) {
@@ -63,46 +65,48 @@ ${name}
     int rc;
 
 //::   for fn, w in match_params:
-//::     if fn in map_mod.openflow_tables[table_name].match_fields:
-//::       val  = of_match_vals[map_mod.openflow_tables[table_name].match_fields[fn].field]
-//::       mask = of_match_masks[map_mod.openflow_tables[table_name].match_fields[fn].field]
-//::       fn_match_type = map_mod.openflow_tables[table_name].match_fields[fn].match_type
+//::     c_fn = get_c_name(fn)
+//::     if c_fn in map_mod.openflow_tables[table_name].match_fields:
+//::       val  = of_match_vals[map_mod.openflow_tables[table_name].match_fields[c_fn].field]
+//::       mask = of_match_masks[map_mod.openflow_tables[table_name].match_fields[c_fn].field]
+//::       fn_match_type = map_mod.openflow_tables[table_name].match_fields[c_fn].match_type
 //::       if fn_match_type == "ternary":
 //::         if w > 4:
-    memcpy (match_spec.${fn + "_mask"}, ${mask}, ${w});
+    memcpy (match_spec.${c_fn + "_mask"}, ${mask}, ${w});
 //::         else:
-    match_spec.${fn + "_mask"} = ${mask};
+    match_spec.${c_fn + "_mask"} = ${mask};
 //::         #endif
     if (${mask}) {
 //::         if w > 4:
-        memcpy (match_spec.${fn}, &${val}, ${w});
+        memcpy (match_spec.${c_fn}, &${val}, ${w});
 //::         else:
-        match_spec.${fn} = ${val};
+        match_spec.${c_fn} = ${val};
 //::         #endif
     }
 //::       elif fn_match_type == "lpm":
 //::         if w > 4:
-    memcpy (match_spec.${fn}, ${val}, ${w});
+    memcpy (match_spec.${c_fn}, ${val}, ${w});
 //::         else:
-    match_spec.${fn} = ${val};
+    match_spec.${c_fn} = ${val};
 //::         #endif
-    match_spec.${fn + "_prefix_length"} = bit_mask_to_prefix ((uint8_t *) &${mask}, ${w});
+    match_spec.${c_fn + "_prefix_length"} = bit_mask_to_prefix ((uint8_t *) &${mask}, ${w});
 //::       else:
 //::         if w > 4:
-    memcpy (match_spec.${fn}, ${val}, ${w});
+    memcpy (match_spec.${c_fn}, ${val}, ${w});
 //::         else:
-    match_spec.${fn} = ${val};
+    match_spec.${c_fn} = ${val};
 //::         #endif
 //::       #endif
 //::     #endif
 //::   #endfor
 
 //::   for fn, t, w in table.key:
-//::     if fn not in of_match_params and t == MatchType.TERNARY:
+//::     c_fn = get_c_name(fn)
+//::     if c_fn not in of_match_params and t == MatchType.TERNARY:
 //::       if w > 4:
-    match_spec.${fn + "_mask"} = { [0 ... ${w - 1}] = 0 };
+    match_spec.${c_fn + "_mask"} = { [0 ... ${w - 1}] = 0 };
 //::       else:
-    match_spec.${fn + "_mask"} = 0;
+    match_spec.${c_fn + "_mask"} = 0;
 //::       #endif
 //::     #endif
 //::   #endfor
@@ -252,7 +256,7 @@ ${name}
 
 p4_pd_status_t
 openflow_module_init () {
-    uint8_t device = 0; // FIXME: device should be argument?
+    uint8_t device = 0; // FIXME:
     uint16_t dev_pip_id = 0; // FIXME:
     p4_pd_status_t status = 0;
     p4_pd_entry_hdl_t entry_hdl;
@@ -292,12 +296,12 @@ openflow_module_init () {
     // unset cpu port
     *(port_list + 64 / 8) ^= (1 << (64 % 8));
 
-    mc_mgrp_hdl_t mgrp_hdl;
-    mc_node_hdl_t node_hdl;
+    p4_pd_entry_hdl_t mgrp_hdl;
+    p4_pd_entry_hdl_t node_hdl;
 
-    mc_mgrp_create (P4_PRE_SESSION, 0, 20, &mgrp_hdl);
-    mc_node_create (P4_PRE_SESSION, P4_DEVICE_ID, 0, port_list, lag_map, &node_hdl);
-    mc_associate_node (P4_PRE_SESSION, mgrp_hdl, node_hdl);
+    p4_pd_mc_mgrp_create (P4_PRE_SESSION, 0, 20, &mgrp_hdl);
+    p4_pd_mc_node_create (P4_PRE_SESSION, P4_DEVICE_ID, 0, port_list, lag_map, &node_hdl);
+    p4_pd_mc_associate_node (P4_PRE_SESSION, P4_DEVICE_ID, mgrp_hdl, node_hdl, 0, 0);
 
     AGENT_ETHERNET_FLOOD_MC_HDL = mgrp_hdl;
 
@@ -344,17 +348,9 @@ openflow_init (Pvoid_t *adds, Pvoid_t *mods, Pvoid_t *defs,
     indigo_core_table_register (${table_id}, "${table_name}", ops,
                                 (void *) (uint64_t) ${table_id});
 
-    // Global ${table_name} counters
+    // ${table_name} deletion
     JLI (pv, *dels, ${table_id});
     *pv = (uint64_t) &${pd_prefix + table_name + "_table_delete"};
-    JLI (pv, *read_bytes_hit, ${table_id});
-    *pv = (uint64_t) &${pd_prefix + table_name + "_table_read_bytes_counter_hit"};
-    JLI (pv, *read_bytes_missed, ${table_id});
-    *pv = (uint64_t) &${pd_prefix + table_name + "_table_read_bytes_counter_miss"};
-    JLI (pv, *read_packets_hit, ${table_id});
-    *pv = (uint64_t) &${pd_prefix + table_name + "_table_read_packets_counter_hit"};
-    JLI (pv, *read_packets_missed, ${table_id});
-    *pv = (uint64_t) &${pd_prefix + table_name + "_table_read_packets_counter_miss"};
 
 //:: #endfor
     // per flow counters

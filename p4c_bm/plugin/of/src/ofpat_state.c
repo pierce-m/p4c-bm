@@ -4,7 +4,7 @@
 
 #include <Judy.h>
 #include "ofpat_state.h"
-#include "p4ofagent/p4ofagent.h"
+#include <p4ofagent/p4ofagent.h>
 
 
 /********************
@@ -168,16 +168,16 @@ ofpat_state_group_get_eh (ofpat_pipeline_key_t *key, p4_pd_entry_hdl_t *eh) {
 }
 
 void
-ofpat_state_group_store_mc (uint32_t group_id, mc_mgrp_hdl_t mgid,
-                            mc_node_hdl_t node) {
+ofpat_state_group_store_mc (uint32_t group_id, p4_pd_entry_hdl_t mgid,
+                            p4_pd_entry_hdl_t node) {
     PWord_t pv;
     JLI (pv, group_id_hdl, group_id);
     *pv = ((uint64_t) node << 31) + mgid;
 }
 
 int
-ofpat_state_group_get_mc (uint32_t group_id, mc_mgrp_hdl_t *mgid,
-                          mc_node_hdl_t *node) {
+ofpat_state_group_get_mc (uint32_t group_id, p4_pd_entry_hdl_t *mgid,
+                          p4_pd_entry_hdl_t *node) {
     PWord_t pv;
     int rc;
 
@@ -187,8 +187,8 @@ ofpat_state_group_get_mc (uint32_t group_id, mc_mgrp_hdl_t *mgid,
     }
 
     JLG (pv, group_id_hdl, group_id);
-    *mgid = (mc_mgrp_hdl_t) *pv;
-    *node = (mc_node_hdl_t) (*pv >> 31);
+    *mgid = (p4_pd_entry_hdl_t) *pv;
+    *node = (p4_pd_entry_hdl_t) (*pv >> 31);
     return 0;
 }
 

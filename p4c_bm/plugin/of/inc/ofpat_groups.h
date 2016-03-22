@@ -1,8 +1,8 @@
 #ifndef _OFPAT_GROUPS_H_
 #define _OFPAT_GROUPS_H_
 
-#include "loci/loci.h"
-#include "p4ofagent/openflow-spec1.3.0.h"
+#include <loci/loci.h>
+#include <p4ofagent/openflow-spec1.3.0.h>
 
 /* Allocates a mc/lag group and installs flows in the ofpat pipeline
  * @param group_id Group id given by controller

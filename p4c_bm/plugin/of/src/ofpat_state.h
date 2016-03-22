@@ -5,10 +5,10 @@
  * State management of ofpat.c
  */
 
-#include "p4_sim/pre.h"
-#include "p4_sim/pd.h"
-#include "p4_sim/ofpat_pipeline.h"
-#include "p4ofagent/openflow-spec1.3.0.h"
+#include <pd/pd_pre.h>
+#include <pd/pd.h>
+#include <plugin/of/inc/ofpat_pipeline.h>
+#include <p4ofagent/openflow-spec1.3.0.h>
 
 /************************************************************
  * All accessors return void, 1 on failure, or 0 on success *
@@ -86,8 +86,8 @@ ofpat_state_group_get_eh (ofpat_pipeline_key_t *key, p4_pd_entry_hdl_t *eh);
  * @param l1 L1 node handle
  */
 void
-ofpat_state_group_store_mc (uint32_t group_id, mc_mgrp_hdl_t mgid, 
-                            mc_node_hdl_t l1);
+ofpat_state_group_store_mc (uint32_t group_id, p4_pd_entry_hdl_t mgid, 
+                            p4_pd_entry_hdl_t l1);
 
 /* Gets multicast information associated with group id.
  * @param group_id The group id given by the controller
@@ -95,8 +95,8 @@ ofpat_state_group_store_mc (uint32_t group_id, mc_mgrp_hdl_t mgid,
  * @param l1 [out] L1 node handle
  */
 int
-ofpat_state_group_get_mc (uint32_t group_id, mc_mgrp_hdl_t *mgid,
-                          mc_node_hdl_t *l1);
+ofpat_state_group_get_mc (uint32_t group_id, p4_pd_entry_hdl_t *mgid,
+                          p4_pd_entry_hdl_t *l1);
 
 /* Associates LAG handle with group id.
  * @param group_id The group id given by the controller

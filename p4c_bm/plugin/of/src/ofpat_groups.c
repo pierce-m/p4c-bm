@@ -3,12 +3,15 @@
  */
 
 #include "ofpat_state.h"
-#include "p4_sim/pd.h"
-#include "p4_sim/pre.h"
-#include "p4_sim/ofpat_groups.h"
-#include "p4_sim/ofpat_pipeline.h"
-#include "p4ofagent/p4ofagent.h"
-#include "p4ofagent/parse.h"
+
+#include <plugin/of/inc/ofpat_groups.h>
+#include <plugin/of/inc/ofpat_pipeline.h>
+
+#include <pd/pd.h>
+#include <pd/pd_pre.h>
+
+#include <p4ofagent/p4ofagent.h>
+#include <p4ofagent/parse.h>
 
 #define MAX_GROUP_SIZE 32
 #define PORT_MAP_LENGTH ((PRE_PORTS_MAX + 7)/8)
@@ -33,8 +36,8 @@ ofpat_group_alloc (uint32_t group_id, of_list_bucket_t *buckets,
     memset (port_map, 0, PORT_MAP_LENGTH);
     memset (lag_map, 0, PORT_MAP_LENGTH);
 
-    mc_mgrp_hdl_t mgrp;
-    mc_node_hdl_t node_hdl;
+    p4_pd_entry_hdl_t mgrp;
+    p4_pd_entry_hdl_t node_hdl;
 
     OF_LIST_BUCKET_ITER(buckets, &elt, rv) {
         bucket_sig = 0;
@@ -51,10 +54,10 @@ ofpat_group_alloc (uint32_t group_id, of_list_bucket_t *buckets,
         ofpat_pipeline_add (bucket_sig, &key, &aargs);
     }
 
-    mc_mgrp_create (P4_PRE_SESSION, P4_DEVICE_ID, group_id, &mgrp);
-    mc_node_create (P4_PRE_SESSION, P4_DEVICE_ID, group_id,
+    p4_pd_mc_mgrp_create (P4_PRE_SESSION, P4_DEVICE_ID, group_id, &mgrp);
+    p4_pd_mc_node_create (P4_PRE_SESSION, P4_DEVICE_ID, group_id,
                     port_map, lag_map, &node_hdl);
-    mc_associate_node (P4_PRE_SESSION, mgrp, node_hdl);
+    p4_pd_mc_associate_node (P4_PRE_SESSION, P4_DEVICE_ID, mgrp, node_hdl, 0, 0);
 
     ofpat_state_group_store_mc (group_id, mgrp, node_hdl);
     ofpat_state_group_set_ports (group_id, port_map);
@@ -71,8 +74,8 @@ ofpat_group_create (uint32_t group_id, enum ofp_group_type type) {
     ${pd_prefix}ofpat_group_ingress_match_spec_t ms;
     ${pd_prefix}ofpat_group_ingress_mc_action_spec_t as;
 
-    mc_mgrp_hdl_t hdl;
-    mc_node_hdl_t node;
+    p4_pd_entry_hdl_t hdl;
+    p4_pd_entry_hdl_t node;
 
     ms.openflow_metadata_group_id = group_id;
 
@@ -96,8 +99,8 @@ ofpat_group_delete (uint32_t group_id, enum ofp_group_type type) {
     p4_pd_status_t status = 0;
     uint8_t *port_map;
 
-    mc_mgrp_hdl_t mgrp;
-    mc_node_hdl_t node;
+    p4_pd_entry_hdl_t mgrp;
+    p4_pd_entry_hdl_t node;
 
     if (ofpat_state_group_get_mc (group_id, &mgrp, &node)) {
         return 1;
@@ -108,8 +111,8 @@ ofpat_group_delete (uint32_t group_id, enum ofp_group_type type) {
         return 1;
     }
 
-    mc_mgrp_destroy (P4_PRE_SESSION, mgrp);
-    mc_node_destroy (P4_PRE_SESSION, node);
+    p4_pd_mc_mgrp_destroy (P4_PRE_SESSION, P4_DEVICE_ID, mgrp);
+    p4_pd_mc_node_destroy (P4_PRE_SESSION, P4_DEVICE_ID, node);
 
     ofpat_pipeline_key_t key;
     uint16_t i, j, egr_port;

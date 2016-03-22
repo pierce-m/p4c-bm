@@ -5,8 +5,11 @@
  * Ofpat pipeline datatypes and API 
  */
 
+#include <pd/pd_common.h>
+
+#include <p4ofagent/openflow-spec1.3.0.h>
+
 #include <Judy.h>
-#include "p4ofagent/openflow-spec1.3.0.h"
 
 /* Indexes pipeline in pipeline state */
 typedef struct ofpat_pipeline_key {
